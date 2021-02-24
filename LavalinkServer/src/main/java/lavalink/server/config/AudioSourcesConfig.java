@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 public class AudioSourcesConfig {
 
     private boolean youtube = true;
+    private boolean yandex = true;
+    private YandexMusicConfig yandexProxy = new YandexMusicConfig();
     private boolean bandcamp = true;
     private boolean soundcloud = true;
     private boolean twitch = true;
@@ -25,6 +27,22 @@ public class AudioSourcesConfig {
 
     public void setYoutube(boolean youtube) {
         this.youtube = youtube;
+    }
+
+    public boolean isYandex() {
+        return this.yandex;
+    }
+
+    public void setYandex(boolean yandex) {
+        this.yandex = yandex;
+    }
+
+    public YandexMusicConfig getYandexProxy() {
+        return this.yandexProxy;
+    }
+
+    public void setYandexProxy(YandexMusicConfig yandex) {
+        this.yandexProxy = yandex;
     }
 
     public boolean isBandcamp() {

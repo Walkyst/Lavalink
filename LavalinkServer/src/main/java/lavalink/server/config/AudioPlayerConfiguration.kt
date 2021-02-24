@@ -6,28 +6,27 @@ import com.sedmelluq.discord.lavaplayer.source.bandcamp.BandcampAudioSourceManag
 import com.sedmelluq.discord.lavaplayer.source.beam.BeamAudioSourceManager
 import com.sedmelluq.discord.lavaplayer.source.http.HttpAudioSourceManager
 import com.sedmelluq.discord.lavaplayer.source.local.LocalAudioSourceManager
-import com.sedmelluq.discord.lavaplayer.source.soundcloud.DefaultSoundCloudDataReader
-import com.sedmelluq.discord.lavaplayer.source.soundcloud.DefaultSoundCloudFormatHandler
-import com.sedmelluq.discord.lavaplayer.source.soundcloud.DefaultSoundCloudHtmlDataLoader
-import com.sedmelluq.discord.lavaplayer.source.soundcloud.DefaultSoundCloudPlaylistLoader
-import com.sedmelluq.discord.lavaplayer.source.soundcloud.SoundCloudAudioSourceManager
+import com.sedmelluq.discord.lavaplayer.source.soundcloud.*
 import com.sedmelluq.discord.lavaplayer.source.twitch.TwitchStreamAudioSourceManager
 import com.sedmelluq.discord.lavaplayer.source.vimeo.VimeoAudioSourceManager
+import com.sedmelluq.discord.lavaplayer.source.yamusic.YandexHttpContextFilter
+import com.sedmelluq.discord.lavaplayer.source.yamusic.YandexMusicAudioSourceManager
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager
 import com.sedmelluq.lava.extensions.youtuberotator.YoutubeIpRotatorSetup
-import com.sedmelluq.lava.extensions.youtuberotator.planner.AbstractRoutePlanner
-import com.sedmelluq.lava.extensions.youtuberotator.planner.BalancingIpRoutePlanner
-import com.sedmelluq.lava.extensions.youtuberotator.planner.NanoIpRoutePlanner
-import com.sedmelluq.lava.extensions.youtuberotator.planner.RotatingIpRoutePlanner
-import com.sedmelluq.lava.extensions.youtuberotator.planner.RotatingNanoIpRoutePlanner
+import com.sedmelluq.lava.extensions.youtuberotator.planner.*
 import com.sedmelluq.lava.extensions.youtuberotator.tools.ip.Ipv4Block
 import com.sedmelluq.lava.extensions.youtuberotator.tools.ip.Ipv6Block
+import org.apache.http.HttpHost
+import org.apache.http.auth.AuthScope
+import org.apache.http.auth.UsernamePasswordCredentials
+import org.apache.http.client.config.RequestConfig
+import org.apache.http.impl.client.BasicCredentialsProvider
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.net.InetAddress
 import java.util.function.Predicate
-import java.util.function.Supplier
+
 
 /**
  * Created by napster on 05.03.18.
@@ -47,6 +46,15 @@ class AudioPlayerConfiguration {
 
         if (sources.isYoutube) {
             val youtube = YoutubeAudioSourceManager(serverConfig.isYoutubeSearchEnabled)
+            if (serverConfig.youtubeTimeout != -1) {
+                youtube.configureRequests {
+                    RequestConfig.copy(it).apply {
+                        setConnectTimeout(serverConfig.youtubeTimeout)
+                        setSocketTimeout(serverConfig.youtubeTimeout)
+                        setConnectionRequestTimeout(serverConfig.youtubeTimeout)
+                    }.build()
+                }
+            }
             if (routePlanner != null) {
                 val retryLimit = serverConfig.ratelimit?.retryLimit ?: -1
                 when {
@@ -60,10 +68,34 @@ class AudioPlayerConfiguration {
             if (playlistLoadLimit != null) youtube.setPlaylistPageCount(playlistLoadLimit)
             audioPlayerManager.registerSourceManager(youtube)
         }
+        if (sources.isYandex) {
+            val yandexConfig = sources.yandexProxy
+            val yandex = YandexMusicAudioSourceManager()
+            if (yandexConfig.proxyHost.isNotBlank() && yandexConfig.proxyTimeout != -1) {
+                val credentials = UsernamePasswordCredentials(yandexConfig.proxyLogin, yandexConfig.proxyPass)
+                val credsProvider = BasicCredentialsProvider()
+                val authScope = AuthScope(yandexConfig.proxyHost, yandexConfig.proxyPort)
+                credsProvider.setCredentials(authScope, credentials)
+                yandex.configureBuilder { builder ->
+                    builder.setProxy(HttpHost(yandexConfig.proxyHost, yandexConfig.proxyPort))
+                        .setDefaultCredentialsProvider(credsProvider) }
+                yandex.configureRequests {
+                    RequestConfig.copy(it).apply {
+                        setConnectTimeout(yandexConfig.proxyTimeout)
+                        setSocketTimeout(yandexConfig.proxyTimeout)
+                        setConnectionRequestTimeout(yandexConfig.proxyTimeout)
+                    }.build()
+                }
+            }
+            if (yandexConfig.token.isNotBlank()) {
+                YandexHttpContextFilter.setOAuthToken(yandexConfig.token)
+            }
+            audioPlayerManager.registerSourceManager(yandex)
+        }
         if (sources.isSoundcloud) {
-            val dataReader = DefaultSoundCloudDataReader();
-            val htmlDataLoader = DefaultSoundCloudHtmlDataLoader();
-            val formatHandler = DefaultSoundCloudFormatHandler();
+            val dataReader = DefaultSoundCloudDataReader()
+            val htmlDataLoader = DefaultSoundCloudHtmlDataLoader()
+            val formatHandler = DefaultSoundCloudFormatHandler()
 
             audioPlayerManager.registerSourceManager(SoundCloudAudioSourceManager(
                     serverConfig.isSoundcloudSearchEnabled,
@@ -71,7 +103,7 @@ class AudioPlayerConfiguration {
                     htmlDataLoader,
                     formatHandler,
                     DefaultSoundCloudPlaylistLoader(htmlDataLoader, dataReader, formatHandler)
-            ));
+            ))
         }
         if (sources.isBandcamp) audioPlayerManager.registerSourceManager(BandcampAudioSourceManager())
         if (sources.isTwitch) audioPlayerManager.registerSourceManager(TwitchStreamAudioSourceManager())

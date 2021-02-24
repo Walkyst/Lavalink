@@ -36,6 +36,7 @@ class ServerConfig {
     var playerUpdateInterval: Int? = 5
     var isGcWarnings = true
     var isYoutubeSearchEnabled = true
+    var youtubeTimeout = -1
     var isSoundcloudSearchEnabled = true
     var ratelimit: RateLimitConfig? = null
 }
