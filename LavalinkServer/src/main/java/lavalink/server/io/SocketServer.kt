@@ -55,10 +55,14 @@ class SocketServer(
 
         fun sendPlayerUpdate(socketContext: SocketContext, player: Player) {
             val json = JSONObject()
+
+            val state = player.state
+            val connected = socketContext.getVoiceConnection(player).gatewayConnection?.isOpen == true
+            state.put("connected", connected)
+
             json.put("op", "playerUpdate")
             json.put("guildId", player.guildId)
-            json.put("state", player.state)
-
+            json.put("state", state)
             socketContext.send(json)
         }
     }
