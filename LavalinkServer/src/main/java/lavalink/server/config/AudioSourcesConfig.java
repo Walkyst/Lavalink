@@ -12,13 +12,14 @@ public class AudioSourcesConfig {
 
     private boolean youtube = true;
     private boolean yandex = true;
-    private YandexMusicConfig yandexProxy = new YandexMusicConfig();
+    private YandexMusicConfig yandexConfig = new YandexMusicConfig();
     private boolean bandcamp = true;
     private boolean soundcloud = true;
     private boolean twitch = true;
     private boolean vimeo = true;
     private boolean mixer = true;
     private boolean http = true;
+    private HttpAudioConfig httpAudioConfig = new HttpAudioConfig();
     private boolean local = false;
 
     public boolean isYoutube() {
@@ -37,12 +38,12 @@ public class AudioSourcesConfig {
         this.yandex = yandex;
     }
 
-    public YandexMusicConfig getYandexProxy() {
-        return this.yandexProxy;
+    public YandexMusicConfig getYandexConfig() {
+        return this.yandexConfig;
     }
 
-    public void setYandexProxy(YandexMusicConfig yandex) {
-        this.yandexProxy = yandex;
+    public void setYandexConfig(YandexMusicConfig yandex) {
+        this.yandexConfig = yandex;
     }
 
     public boolean isBandcamp() {
@@ -91,6 +92,14 @@ public class AudioSourcesConfig {
 
     public void setHttp(boolean http) {
         this.http = http;
+    }
+
+    public HttpAudioConfig getHttpAudioConfig() {
+        return this.httpAudioConfig;
+    }
+
+    public void setHttpAudioConfig(HttpAudioConfig httpAudioConfig) {
+        this.httpAudioConfig = httpAudioConfig;
     }
 
     public boolean isLocal() {

@@ -80,7 +80,7 @@ class AudioPlayerConfiguration {
             audioPlayerManager.registerSourceManager(youtube)
         }
         if (sources.isYandex) {
-            val yandexConfig = sources.yandexProxy
+            val yandexConfig = sources.yandexConfig
             val yandex = YandexMusicAudioSourceManager()
             if (yandexConfig.proxyHost.isNotBlank() && yandexConfig.proxyTimeout != -1) {
                 val credentials = UsernamePasswordCredentials(yandexConfig.proxyLogin, yandexConfig.proxyPass)
@@ -120,7 +120,27 @@ class AudioPlayerConfiguration {
         if (sources.isTwitch) audioPlayerManager.registerSourceManager(TwitchStreamAudioSourceManager())
         if (sources.isVimeo) audioPlayerManager.registerSourceManager(VimeoAudioSourceManager())
         if (sources.isMixer) audioPlayerManager.registerSourceManager(BeamAudioSourceManager())
-        if (sources.isHttp) audioPlayerManager.registerSourceManager(HttpAudioSourceManager())
+        if (sources.isHttp) {
+            val httpAudioConfig = sources.httpAudioConfig
+            val http = HttpAudioSourceManager()
+            if (httpAudioConfig.proxyHost.isNotBlank() && httpAudioConfig.proxyTimeout != -1) {
+                val credentials = UsernamePasswordCredentials(httpAudioConfig.proxyLogin, httpAudioConfig.proxyPass)
+                val credsProvider = BasicCredentialsProvider()
+                val authScope = AuthScope(httpAudioConfig.proxyHost, httpAudioConfig.proxyPort)
+                credsProvider.setCredentials(authScope, credentials)
+                http.configureBuilder { builder ->
+                    builder.setProxy(HttpHost(httpAudioConfig.proxyHost, httpAudioConfig.proxyPort))
+                        .setDefaultCredentialsProvider(credsProvider) }
+                http.configureRequests {
+                    RequestConfig.copy(it).apply {
+                        setConnectTimeout(httpAudioConfig.proxyTimeout)
+                        setSocketTimeout(httpAudioConfig.proxyTimeout)
+                        setConnectionRequestTimeout(httpAudioConfig.proxyTimeout)
+                    }.build()
+                }
+            }
+            audioPlayerManager.registerSourceManager(http)
+        }
         if (sources.isLocal) audioPlayerManager.registerSourceManager(LocalAudioSourceManager())
 
         audioPlayerManager.configuration.isFilterHotSwapEnabled = true
