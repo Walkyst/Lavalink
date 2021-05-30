@@ -167,8 +167,8 @@ class SocketContext internal constructor(
         log.info("Replaying ${resumeEventQueue.size} events")
 
         // Bulk actions are not guaranteed to be atomic, so we need to do this imperatively
-       while (resumeEventQueue.isNotEmpty()) {
-            send(resumeEventQueue.remove())
+        while (resumeEventQueue.isNotEmpty()) {
+           send(resumeEventQueue.remove())
         }
 
         players.values.forEach { SocketServer.sendPlayerUpdate(this, it) }
