@@ -1,7 +1,6 @@
 buildscript {
     ext {
         springBootVersion = '2.1.8.RELEASE'
-        gradleGitVersion = '1.5.2'
         sonarqubeVersion = '2.6.2'
         kotlinVersion = '1.4.21'
         testLoggerVersion = '1.6.0'
@@ -13,7 +12,6 @@ buildscript {
         maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath "gradle.plugin.com.gorylenko.gradle-git-properties:gradle-git-properties:${gradleGitVersion}"
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
         classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:${sonarqubeVersion}"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
@@ -43,7 +41,6 @@ subprojects {
         apply from: "../analysis.gradle"
     }
 
-    compileJava.dependsOn 'clean'
     compileJava.options.encoding = 'UTF-8'
     compileJava.options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
 
@@ -53,9 +50,9 @@ subprojects {
 
     ext {
         //@formatter:off
-        
-        lavaplayerVersion               = '03e085f64f'
-        lavaplayerIpRotatorVersion      = '0.2.3'
+
+        lavaplayerVersion               = '83ded82bf3'
+        lavaplayerIpRotatorVersion      = '5823c82acd'
         jdaNasVersion                   = '1.1.0'
         jappVersion                     = '1.3.2-MINN'
         koeVersion                      = '1.0.1'
