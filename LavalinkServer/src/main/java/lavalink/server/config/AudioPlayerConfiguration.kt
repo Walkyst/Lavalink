@@ -12,6 +12,7 @@ import com.sedmelluq.discord.lavaplayer.source.vimeo.VimeoAudioSourceManager
 import com.sedmelluq.discord.lavaplayer.source.yamusic.YandexHttpContextFilter
 import com.sedmelluq.discord.lavaplayer.source.yamusic.YandexMusicAudioSourceManager
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager
+import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeHttpContextFilter
 import com.sedmelluq.lava.extensions.youtuberotator.YoutubeIpRotatorSetup
 import com.sedmelluq.lava.extensions.youtuberotator.planner.*
 import com.sedmelluq.lava.extensions.youtuberotator.tools.ip.Ipv4Block
@@ -77,6 +78,12 @@ class AudioPlayerConfiguration {
             }
             val playlistLoadLimit = serverConfig.youtubePlaylistLoadLimit
             if (playlistLoadLimit != null) youtube.setPlaylistPageCount(playlistLoadLimit)
+            val youtubeConfig = sources.youtubeConfig
+            if (youtubeConfig.PAPISID.isNotBlank() && youtubeConfig.PSID.isNotBlank() && youtubeConfig.PSIDCC.isNotBlank()) {
+                YoutubeHttpContextFilter.setPAPISID(youtubeConfig.PAPISID)
+                YoutubeHttpContextFilter.setPSID(youtubeConfig.PSID)
+                YoutubeHttpContextFilter.setPSIDCC(youtubeConfig.PSIDCC)
+            }
             audioPlayerManager.registerSourceManager(youtube)
         }
         if (sources.isYandex) {
